@@ -1,0 +1,101 @@
+---
+title: "Untitled"
+author: "Juliet Maharaj"
+date: "2022-08-08"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r}
+library(readr)
+library(stringr)
+library(ggplot2)
+library(dplyr)
+library("viridis")
+library(tidyverse)
+```
+
+First, we will import the data that we recieved from Kaggle. 
+
+```{r}
+data = read_csv("/Users/juliet/Dropbox/My Mac (Juliet’s MacBook Air)/Downloads/sephora_website_dataset.csv")
+```
+
+Now that we have imported the data, we can see that there are 9168 rows and 21 columns. This data set is a list of the products sold at Sephora and detailed information about the products.
+
+Below, we can see the highest rated brands at Sephora. This rating is a average of all the ratings for that brand.
+
+```{r}
+bran = aggregate(rating ~ brand, data = data, mean) %>% arrange(desc(rating))
+print(head(bran, 50))
+```
+Below, is a table of all the brands sold at Sephora and how many products each of them have available. 
+
+```{r}
+brand = as.data.frame(table(data$brand)) %>% arrange(desc(Freq))
+print(head(brand,30))
+```
+Because there are so many different brands at Sephora, we will further analyize the top 20 rated brands. 
+
+```{r}
+focus = head(brand[,1],20)
+top20 = data %>% filter(brand %in% (focus))
+
+sapply(top20, function(x) sum(is.na(x)))
+```
+
+If we combine similar categories in the Sephora data set, we will be able to further our analysis. For example, there is no purpose for have both categories 'Cologne' and 'Perfume' right now. 
+
+```{r}
+category <- as.data.frame(table(top20$category))
+```
+
+
+```{r}
+Fragrance_list <- c('Perfume', 'Perfume Gift Sets', 'Cologne Gift Sets', 'Fragrance', 'Body Mist & Hair Mist', 'Body Sprays & Deodorant', 'Deodorant & Antiperspirant', 'Deodorant for Men', 'Diffusers', 'Cologne', 'Candles', 'Candles & Home Scents', 'Rollerballs & Travel Size')
+
+top20$category[top20$category %in% Fragrance_list] <- 'Fragrance'
+
+Cleansers_list <- c('Face Wash & Cleansers', 'Face Wash', 'Makeup Removers', 'Toners', 'Face Wipes')
+top20$category[top20$category %in% Cleansers_list] <- 'Cleansers'
+
+Sunscreen <- c('Face Sunscreen', 'Lip Sunscreen', 'Body Sunscreen')
+top20$category[top20$category %in% Sunscreen] <- 'Sunscreen'
+
+Masks <- c('Face Masks', 'Sheet Masks', 'Facial Peels', 'Cellulite & Stretch Marks', 'Exfoliators', 'Eye Masks')
+
+top20$category[top20$category %in% Masks] <- 'Masks and Exfoliators'
+
+Moisturizers <- c('Moisturizers', 'Night Creams', 'Face Oils', 'Mists & Essences', 'Face Serums', 'Eye Creams & Treatments', 'Lotions & Oils','Skincare', 'Lip Balm & Treatment', 'Lip Balms & Treatments', 'Lip Balms & Treatments', 'Moisturizer & Treatments', 'Blemish & Acne Treatments', 'Face Serums', 'Tinted Moisturizer', 'Eye Cream', 'After Sun Care', 'Anti-Aging')
+
+top20$category[top20$category %in% Moisturizers]<- 'Moisturizers and Treatments'
+
+Makeup <- c('Mascara', 'Lipstick', 'Foundation', '	Eyeliner', 'Highlighter', 'Eye Palettes', 'Eyebrow', 'Makeup', 'Face Primer', 'Setting Spray & Powder', 'Concealer','Bronzer', 'Lip Gloss', 'Blush','Eyeshadow', 'Makeup Palettes', 'Makeup & Travel Cases', 'Lip Stain', 'Makeup Bags & Travel Cases', 'Eye Primer', 'Lip Liner','	Cheek Palettes', 'BB & CC Cream', 'Cheek Palettes', 'Liquid Lipstick', 'Color Correct', 'Contour', 'BB & CC Creams', 'Lip Plumper', 'Eyeliner')
+
+top20$category[top20$category %in% Makeup] <- 'Makeup'
+
+Tools <- c('Face Brushes', 'Eye Brushes', 'Sponges & Applicators', 'False Eyelashes', 'Brush Sets', 'Brush Cleaners', 'Facial Rollers', 'Eyelash Curlers', 'Facial Cleansing Brushes', 'Blotting Papers', 'Tweezers & Eyebrow Tools','	Lip Brushes', 'Curling Irons', 'Lid Shadow Brush', 'Powder Brush', 'Spa Tools', 'Hair Brushes & Combs', 'Hair Accessories', 'Hair Dryers', 'Hair Straighteners & Flat Irons', 'Lip Brushes', 'Mirrors & Sharpeners', 'Accessories', 'Teeth Whitening')
+
+top20$category[top20$category %in% Tools] <- 'Tools and Brushes'
+
+Hair <- c('Hair Styling Products', 'Shampoo', 'Conditioner', 'Hair', 'Hair Masks', 'Hair Primers', 'Scalp & Hair Treatments', 'Dry Shampoo', 'Hair Oil', 'Hair Spray', 'Leave-In Conditioner', 'Hair Products', 'Color Care','	Shampoo & Conditioner', 'Shampoo & Conditioner', 'Diffusers' )
+
+top20$category[top20$category %in% Hair] <- 'Hair Products'
+
+Bath <- c('Body Lotions & Body Oils', 'Body Wash & Shower Gel', 'Bath & Shower', 'Hand Cream & Foot Cream', 'Bath Soaks & Bubble Bath', 'Body Products', 'For Body', 'Bath & Body', 'Body Moisturizers', 'Scrub & Exfoliants', 'Decollete & Neck Creams', 'Self Tanners', 'Shaving',  'Aftershave')
+
+top20$category[top20$category %in% Bath] <- 'Bath&Body'
+
+other_list <- c('Mini Size', 'Beauty Supplements', 'no category', 'Nail', 'Value & Gift Sets', 'Face Sets', 'Eye Sets', 'Lip Sets', 'For Face', 'Skincare Sets', 'Hair Removal')
+
+top20$category[top20$category %in% other_list]<- 'Others'
+```
+
+
+```{r}
+as.data.frame(table(top20$category)) %>%
+  rename(category = Var1) %>%
+  arrange(desc(Freq))
+```
+Now that we have combined common categories, further analysis can be done. 
